@@ -1,0 +1,9 @@
+venv/
+.venv
+data/
+include/
+lib/
+local/
+share/
+bin/
+env/
