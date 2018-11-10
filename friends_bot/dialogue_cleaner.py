@@ -73,7 +73,8 @@ class DialogueCleaner(object):
         return x
 
     def run_dialogue_cleaner(self, dialogue):
-        x = dialogue.map(self.delete_blank)
+        x = dialogue.astype(str)
+        x = x.map(self.delete_blank)
         x = x.str.lower()
         x = x.map(self.delete_large_spaces)
         x = x.map(self.change_words)
