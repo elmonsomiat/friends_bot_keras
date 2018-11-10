@@ -18,7 +18,6 @@ class TokenizerCustom(Tokenizer):
         tok_str = self.texts_to_sequences(pd.Series(x).values)
         return self.pad_string(tok_str)[0]
 
-
 def remap_words_overall(y, times, myid, voc_dic_inv):
     len_shape = len(voc_dic_inv)
     new_index = len_shape
