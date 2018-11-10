@@ -8,3 +8,4 @@ share/
 bin/
 env/
 *__pycached__/
+*.ipynb_checkpoints/
