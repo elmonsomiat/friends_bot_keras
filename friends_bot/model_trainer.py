@@ -8,6 +8,7 @@ from keras.layers import Embedding, Input, Dense, LSTM, Dropout, RepeatVector
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
 from keras.layers.wrappers import TimeDistributed
+from custom_layers.custom_layers import Att
 
 
 
@@ -15,25 +16,20 @@ def define_model(max_seq_len, vocab_dim, vocab_out_dim, emb_weights, emb_len=100
     inp = Input(shape=(max_seq_len,))
     emb = Embedding(vocab_dim, emb_len, weights=[emb_weights], 
                     input_length=max_seq_len, trainable=False, mask_zero=True)(inp)
-    # lstm_in = LSTM(200, dropout=0, return_sequences=True)(emb)
-    lstm_in = LSTM(lstm_units, dropout=dropout)(emb)
-
-    rep_vec = RepeatVector(max_seq_len)(lstm_in)
-    rep_vec = TimeDistributed(Dense(vocab_out_dim, activation='relu', W_regularizer=regularizers.l2(reg)))(rep_vec)
 
     if attention:
-        lstm_in_2 = LSTM(lstm_units, dropout=dropout)(emb)
-        rep_vec_2 = RepeatVector(max_seq_len)(lstm_in)
-        rep_vec_2 = TimeDistributed(Dense(vocab_out_dim, activation='tanh', W_regularizer=regularizers.l2(reg)))(rep_vec_2)
-        rep_vec = multiply([rep_vec, rep_vec_2])
+        x = Att(lstm_units)(emb)
 
-    elif simple_attention:
-        lstm_in_2 = LSTM(lstm_units, dropout=dropout)(emb)
-        rep_vec_2 = Dense(vocab_out_dim, activation='tanh', W_regularizer=regularizers.l2(reg))(lstm_in_2)
-        rep_vec = multiply([rep_vec, rep_vec_2])
+    else:
+        model2 = Model(input=inp, output=output_)
+        lstm_in = LSTM(lstm_units, dropout=dropout, return_sequences=True)(emb)
+        lstm_in = LSTM(lstm_units, dropout=dropout)(emb)
 
-    lstm_out = LSTM(lstm_units, dropout=dropout, return_sequences=True)(rep_vec)
-    # lstm_out = LSTM(lstm_units, dropout=0, return_sequences=True)(lstm_out)
+        rep_vec = RepeatVector(max_seq_len)(lstm_in)
+        x = TimeDistributed(Dense(vocab_out_dim, activation='relu', W_regularizer=regularizers.l2(reg)))(rep_vec)
+
+    lstm_out = LSTM(lstm_units, dropout=dropout, return_sequences=True)(x)
+    lstm_out = LSTM(lstm_units, dropout=dropout, return_sequences=True)(lstm_out)
 
     out = TimeDistributed(Dense(vocab_out_dim, activation='softmax', W_regularizer=regularizers.l2(reg)))(lstm_out)
     return inp, out
